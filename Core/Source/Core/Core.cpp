@@ -1,5 +1,12 @@
 #include "Core.h"
 
+namespace
+{
+	// Static RNG setup (translation unit scope)
+	static std::random_device rd;      // Seed source
+	static std::mt19937 gen(rd());     // Mersenne Twister RNG
+}
+
 //Core.cpp
 namespace Core
 {
@@ -87,6 +94,4 @@ namespace Core
 		// Return the processed rolls based on the boons and banes logic.
 		return selectedRolls;
 	}//End of boonBaneRoll
-	
-	
 }//End of Namespace Core
