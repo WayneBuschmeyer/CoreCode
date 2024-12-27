@@ -20,9 +20,7 @@ namespace Core
 			return {}; // Return an empty vector for invalid parameters
 		}
 
-		// Random number generator setup
-		static std::random_device rd;            // Seed source
-		static std::mt19937 gen(rd());           // Mersenne Twister RNG
+		// Random number
 		std::uniform_int_distribution<> dis(minValue, diceSides);
 
 		// Preallocate the vector and fill it with rolls
@@ -35,14 +33,14 @@ namespace Core
 		return Dicerolls;
 	}//End of rollDice
 
-	// Function: boonBaneRoll
-	// Simulates rolling dice with adjustments for boons (advantages) and banes (disadvantages).
-	std::vector<int> boonBaneRoll(int boons, int banes, int baseDiceCount, int diceSides, int minValue)
+	 // Function: skillRoll
+	// Performs a skill roll, including adjustments for boons and banes.
+	SkillRollResult skillRoll(int skillLevel, int boons, int banes, int baseDiceCount, int diceSides, int minValue)
 	{
 		// Validate input parameters
 		if (baseDiceCount <= 0 or diceSides <= 0 or minValue > diceSides)
 		{
-			return {}; // Return an empty vector for invalid parameters
+			return { skillLevel, {}, false, false }; // Invalid roll
 		}
 
 		// Calculate the total number of extra rolls caused by the imbalance between boons and banes.
@@ -52,46 +50,146 @@ namespace Core
 		int totalRolls = baseDiceCount + extraRolls;
 
 		// Generate all the required dice rolls.
-		// The rollDice function is expected to return random numbers between minValue and diceSides.
 		std::vector<int> Dicerolls = rollDice(totalRolls, diceSides, minValue);
 
 		// If rollDice returns an empty vector, propagate the error.
 		if (Dicerolls.empty())
 		{
-			return {}; // Invalid rolls due to invalid parameters in rollDice
+			return { skillLevel, {}, false, false }; // Invalid roll
 		}
 
 		// Prepare a vector to store the final selected rolls.
-		// This will contain only the baseDiceCount rolls after processing boons/banes.
 		std::vector<int> selectedRolls(baseDiceCount);
 
 		if (boons > banes)
 		{
 			// When boons exceed banes, select the highest baseDiceCount rolls.
-			// Use std::nth_element to partition the rolls so that the top rolls are at the front.
 			std::nth_element(Dicerolls.begin(), Dicerolls.begin() + baseDiceCount, Dicerolls.end(),
-				[](int a, int b) { return a > b; }); // Comparator ensures descending order.
+				[](int a, int b) { return a > b; });
 
-			// Copy the highest rolls into the selectedRolls vector.
 			std::copy(Dicerolls.begin(), Dicerolls.begin() + baseDiceCount, selectedRolls.begin());
 		}
 		else if (banes > boons)
 		{
 			// When banes exceed boons, select the lowest baseDiceCount rolls.
-			// By default, std::nth_element arranges elements in ascending order.
 			std::nth_element(Dicerolls.begin(), Dicerolls.begin() + baseDiceCount, Dicerolls.end());
 
-			// Copy the lowest rolls into the selectedRolls vector.
 			std::copy(Dicerolls.begin(), Dicerolls.begin() + baseDiceCount, selectedRolls.begin());
 		}
 		else
 		{
 			// When boons and banes cancel out, no adjustments are made to the rolls.
-			// Simply take the first baseDiceCount rolls.
 			std::copy(Dicerolls.begin(), Dicerolls.begin() + baseDiceCount, selectedRolls.begin());
 		}
 
-		// Return the processed rolls based on the boons and banes logic.
-		return selectedRolls;
-	}//End of boonBaneRoll
+		// Check for critical success or failure
+		bool critSuccess = std::all_of(selectedRolls.begin(), selectedRolls.end(), [diceSides](int roll) { return roll == diceSides; });
+		bool critFailure = std::all_of(selectedRolls.begin(), selectedRolls.end(), [minValue](int roll) { return roll == minValue; });
+
+		// Calculate the total roll including the skill level.
+		int total = std::accumulate(selectedRolls.begin(), selectedRolls.end(), skillLevel);
+
+		// Return the result structure.
+		return { total, selectedRolls, critSuccess, critFailure };
+	}//End of skillRoll
+
+	// Function: opposedRoll
+	// Performs an opposed roll between two contestants.
+	OpposedRollResult Core::opposedRoll(int attackerSkillLevel, int defenderSkillLevel,
+		int attackerBoons, int attackerBanes,
+		int defenderBoons, int defenderBanes,
+		int baseDiceCount, int diceSides, int minValue)
+	{
+		// Perform skill rolls for both contestants
+		SkillRollResult attackerResult = skillRoll(attackerSkillLevel, attackerBoons, attackerBanes, baseDiceCount, diceSides, minValue);
+		SkillRollResult defenderResult = skillRoll(defenderSkillLevel, defenderBoons, defenderBanes, baseDiceCount, diceSides, minValue);
+
+		// Initialize result variables
+		Winner winner = Winner::TIE;
+		int degree = 0;
+		bool critWin = false;
+		bool critLoss = false;
+
+		// Determine winner based on totals
+		if (attackerResult.total > defenderResult.total)
+		{
+			winner = Winner::ATTACKER;
+		}
+		else if (defenderResult.total > attackerResult.total)
+		{
+			winner = Winner::DEFENDER;
+		}
+		else
+		{
+			// If totals are the same, compare skill levels
+			if (attackerSkillLevel > defenderSkillLevel)
+			{
+				winner = Winner::ATTACKER;
+			}
+			else if (defenderSkillLevel > attackerSkillLevel)
+			{
+				winner = Winner::DEFENDER;
+			}
+		}
+
+		// Adjust the winner based on critical successes and failures
+		if (attackerResult.critSuccess and defenderResult.critSuccess)
+		{
+			// Both crit: Winner stays as determined by total or skill comparison
+		}
+		else if (attackerResult.critSuccess)
+		{
+			winner = Winner::ATTACKER;
+			critWin = true;
+		}
+		else if (defenderResult.critSuccess)
+		{
+			winner = Winner::DEFENDER;
+			critWin = true;
+		}
+		else if (attackerResult.critFailure && defenderResult.critFailure)
+		{
+			// Both fumble: Winner stays as determined by total or skill comparison
+		}
+		else if (attackerResult.critFailure)
+		{
+			winner = Winner::DEFENDER;
+			critLoss = true;
+		}
+		else if (defenderResult.critFailure)
+		{
+			winner = Winner::ATTACKER;
+			critLoss = true;
+		}
+
+		// Calculate the degree of difference
+		degree = std::abs(attackerResult.total - defenderResult.total) / DIFFICULTY_SCALING_FACTOR;
+
+		// Return the result
+		return { winner, degree, attackerResult, defenderResult, critWin, critLoss };
+	}//End of opposedRoll
+
+	// Function: targetRoll
+	// Rolls against a target number to determine success or failure.
+	TargetRollResult Core::targetRoll(int skillLevel, int difficultyLevel,
+		int boons, int banes,
+		int baseDiceCount, int diceSides, int minValue)
+	{
+		// Calculate the target number as difficultyLevel * DIFFICULTY_SCALING_FACTOR
+		int targetNumber = difficultyLevel * DIFFICULTY_SCALING_FACTOR;
+
+		// Perform the skill roll
+		SkillRollResult roll = skillRoll(skillLevel, boons, banes, baseDiceCount, diceSides, minValue);
+
+		// Determine success or failure
+		bool success = roll.total >= targetNumber;
+		int degree = (roll.total - targetNumber) / DIFFICULTY_SCALING_FACTOR;
+
+		// Check for critical success or failure
+		bool critSuccess = roll.critSuccess;
+		bool critFailure = roll.critFailure;
+
+		// Return the result in a TargetRollResult struct
+		return { success, degree, roll, critSuccess, critFailure };
+	}	//End of targetRoll
 }//End of Namespace Core
