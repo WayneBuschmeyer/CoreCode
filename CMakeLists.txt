@@ -11,12 +11,16 @@ add_library(Core STATIC
     Core/Source/Core/Core.h
 )
 
+# Include the Core directory for Core and App
+target_include_directories(Core PUBLIC Core/Source)
+
 # Add the main application
 add_executable(App
     App/Source/App.cpp
 )
 
-# Link the Core library to the application
+# Ensure App includes the Core directory
+target_include_directories(App PRIVATE Core/Source)
 target_link_libraries(App PRIVATE Core)
 
 # Include Google Test
@@ -30,13 +34,14 @@ FetchContent_MakeAvailable(googletest)
 # Enable testing
 enable_testing()
 
-# Add test executable from the tests folder
+# Add test executable
 add_executable(tests
     tests/test_dice.cpp
 )
 
-# Link tests with Core and Google Test
+# Ensure tests include the Core directory
+target_include_directories(tests PRIVATE Core/Source)
 target_link_libraries(tests PRIVATE Core gtest_main)
 
-# Register tests with CTest
+# Add tests to CTest
 add_test(NAME CoreTests COMMAND tests)
