@@ -7,13 +7,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # Add the Core library
 add_library(Core STATIC
-    Core/Core.cpp
-    Core/Core.h
+    Core/Source/Core/Core.cpp
+    Core/Source/Core/Core.h
 )
 
 # Add the executable (your main application)
 add_executable(App
-    App.cpp
+    App/Source/App.cpp
 )
 
 # Link the Core library to the application
@@ -31,7 +31,9 @@ FetchContent_MakeAvailable(googletest)
 enable_testing()
 
 # Add test executable
-add_executable(tests tests/test_dice.cpp)
+add_executable(tests
+    Core/Source/Core/tests/test_dice.cpp
+)
 
 # Link tests with Core and Google Test
 target_link_libraries(tests PRIVATE Core gtest_main)
