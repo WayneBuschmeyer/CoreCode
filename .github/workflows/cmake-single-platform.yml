@@ -1,14 +1,12 @@
 name: CMake on a single platform
 
 on:
-  # Trigger workflow on pushes to main or development, and on pull requests to those branches
   push:
     branches: [ "main", "development" ]
   pull_request:
     branches: [ "main", "development" ]
 
 env:
-  # Build type can be customized (e.g., Debug, Release, etc.)
   BUILD_TYPE: Debug
 
 jobs:
@@ -16,23 +14,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # Step 1: Check out the repository
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    # Step 2: Install required dependencies
+    - name: Cache CMake build directory
+      uses: actions/cache@v3
+      with:
+        path: build
+        key: ${{ runner.os }}-cmake-build-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-cmake-build-
+
     - name: Install dependencies
       run: sudo apt-get update && sudo apt-get install -y cmake g++
 
-    # Step 3: Configure the project using CMake
     - name: Configure CMake
       run: cmake -S . -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
-    # Step 4: Build the project
     - name: Build
       run: cmake --build build --config ${{env.BUILD_TYPE}}
 
-    # Step 5: Run tests using CTest
     - name: Run tests
       working-directory: build
-      run: ctest --output-on-failure -C ${{env.BUILD_TYPE}}
+      run: ctest --output-on-failure -VV -C ${{env.BUILD_TYPE}}
