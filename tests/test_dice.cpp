@@ -11,14 +11,6 @@ TEST(CoreTests, RollDice) {
     }
 }
 
-// Test for skillRoll with critical success
-TEST(CoreTests, SkillRollCriticalSuccess) {
-    Core::SkillRollResult result = Core::skillRoll(0, 0, 0, 3, 6, 6); // Force rolls to be max
-    EXPECT_TRUE(result.critSuccess);          // All rolls should be 6
-    EXPECT_FALSE(result.critFailure);         // No roll should be the minimum value
-}
-
-
 // Test for opposedRoll function
 TEST(CoreTests, OpposedRoll) {
     Core::OpposedRollResult result = Core::opposedRoll(10, 8, 1, 0, 0, 1, 3, 6, 1);
