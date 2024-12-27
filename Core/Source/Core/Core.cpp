@@ -95,7 +95,7 @@ namespace Core
 
 	// Function: opposedRoll
 	// Performs an opposed roll between two contestants.
-	OpposedRollResult Core::opposedRoll(int attackerSkillLevel, int defenderSkillLevel,
+	OpposedRollResult opposedRoll(int attackerSkillLevel, int defenderSkillLevel,
 		int attackerBoons, int attackerBanes,
 		int defenderBoons, int defenderBanes,
 		int baseDiceCount, int diceSides, int minValue)
@@ -171,7 +171,7 @@ namespace Core
 
 	// Function: targetRoll
 	// Rolls against a target number to determine success or failure.
-	TargetRollResult Core::targetRoll(int skillLevel, int difficultyLevel,
+	TargetRollResult targetRoll(int skillLevel, int difficultyLevel,
 		int boons, int banes,
 		int baseDiceCount, int diceSides, int minValue)
 	{
