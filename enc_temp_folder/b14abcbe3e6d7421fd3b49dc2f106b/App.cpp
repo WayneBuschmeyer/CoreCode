@@ -201,8 +201,8 @@ static void runCoreRoller()
 		std::cout << "\nWelcome to CoreRoller!\n";
 		std::cout << "1. Perform an Opposed Roll\n";
 		std::cout << "2. Roll Against a Target Number\n";
-		std::cout << "3. Exit\n";
-		std::cout << "4. Show Manual (How It Works)\n";
+		std::cout << "3. Show Manual (How It Works)\n";
+		std::cout << "4. Exit\n";
 
 		int choice = getValidatedInput("Choose an option (1-4): ", 1, 4);
 
@@ -216,13 +216,11 @@ static void runCoreRoller()
 			handleTargetRoll();
 			break;
 		case 3:
-			std::cout << "Exiting CoreRoller. Goodbye!\n";
-			return;
-
-		case 4:
 			showManual();
 			break;
-
+		case 4:
+			std::cout << "Exiting CoreRoller. Goodbye!\n";
+			return;
 		default:
 			std::cout << "Invalid choice. Please try again.\n";
 		}
