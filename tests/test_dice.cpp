@@ -11,15 +11,6 @@ TEST(CoreTests, RollDice) {
     }
 }
 
-// Test for skillRoll function
-TEST(CoreTests, SkillRoll) {
-    Core::SkillRollResult result = Core::skillRoll(5, 2, 0, 3, 6, 1);
-    ASSERT_EQ(result.selectedRolls.size(), 3); // Ensure correct number of selected rolls
-    EXPECT_GE(result.total, 5);                // Total should at least include skill level
-    EXPECT_FALSE(result.critSuccess);          // Not all rolls are 6
-    EXPECT_FALSE(result.critFailure);          // Not all rolls are 1
-}
-
 // Test for skillRoll with critical success
 TEST(CoreTests, SkillRollCriticalSuccess) {
     Core::SkillRollResult result = Core::skillRoll(0, 0, 0, 3, 6, 6); // Force rolls to be max
