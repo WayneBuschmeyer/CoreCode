@@ -12,28 +12,47 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        build_type: [Debug, Release] # Test across Debug and Release configurations
 
     steps:
+    # Step 1: Checkout repository
     - name: Checkout repository
       uses: actions/checkout@v4
 
+    # Step 2: Cache CMake build directory
     - name: Cache CMake build directory
       uses: actions/cache@v3
       with:
         path: build
-        key: ${{ runner.os }}-cmake-build-${{ github.sha }}
+        key: ${{ runner.os }}-cmake-build-${{ matrix.build_type }}-${{ hashFiles('CMakeLists.txt', '**/*.cpp', '**/*.h') }}
         restore-keys: |
           ${{ runner.os }}-cmake-build-
 
+    # Step 3: Install dependencies
     - name: Install dependencies
       run: sudo apt-get update && sudo apt-get install -y cmake g++
 
+    # Step 4: Configure the project with CMake
     - name: Configure CMake
-      run: cmake -S . -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+      run: cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
 
-    - name: Build
-      run: cmake --build build --config ${{env.BUILD_TYPE}}
+    # Step 5: Build the project
+    - name: Build project
+      run: cmake --build build --config ${{ matrix.build_type }}
 
+    # Step 6: Run tests using CTest
     - name: Run tests
       working-directory: build
-      run: ctest --output-on-failure -VV -C ${{env.BUILD_TYPE}}
+      run: ctest --output-on-failure -VV -C ${{ matrix.build_type }}
+
+    # Optional: Notifications (Slack example)
+    - name: Notify Slack on failure
+      if: failure()
+      uses: 8398a7/action-slack@v3
+      with:
+        status: ${{ job.status }}
+        fields: repo,commit,author
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
