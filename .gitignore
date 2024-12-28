@@ -1,6 +1,10 @@
 # Directories
 .vs/
 Binaries/
+build/
+CMakeFiles/
+logs/
+Testing/
 
 # Files
 *.vcxproj
@@ -8,7 +12,44 @@ Binaries/
 *.vcxproj.filters
 *.sln
 *.log
+*.tmp
+*.bak
+*.swp
+*.DS_Store
+*.obj
+*.o
+*.out
+*.exe
+*.dll
+*.dylib
+*.so
+*.a
 Makefile
+CMakeCache.txt
+cmake_install.cmake
+*.make
+*.ninja
 
-# Exclude
+# Test and Coverage Outputs
+*.gcno
+*.gcda
+*.gcov
+
+# Exclude Vendor Binaries
 !Vendor/Binaries
+
+# IDE and Editor Configurations
+.vscode/
+.idea/
+*.code-workspace
+
+# macOS System Files
+.DS_Store
+
+# Python Virtual Environment (if used for scripts)
+__pycache__/
+*.py[cod]
+venv/
+
+# GitHub Actions Temporary Files
+.github/workflows/*~
