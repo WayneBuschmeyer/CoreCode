@@ -1,0 +1,60 @@
+name: Nightly Workflow
+
+on:
+  schedule:
+    - cron: "0 2 * * *" # Run nightly at 2 AM UTC
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  nightly:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Step 1: Checkout the repository
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    # Step 2: Set up Git user for automatic merges
+    - name: Set Git user
+      run: |
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@github.com"
+
+    # Step 3: Merge development into nightly
+    - name: Merge development into nightly
+      run: |
+        git fetch origin
+        git checkout nightly
+        git merge origin/development --no-edit
+        git push origin nightly
+
+    # Step 4: Install dependencies
+    - name: Install dependencies
+      run: sudo apt-get update && sudo apt-get install -y cmake g++
+
+    # Step 5: Configure CMake
+    - name: Configure CMake
+      run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
+
+    # Step 6: Build the project
+    - name: Build project
+      run: cmake --build build --config Debug
+
+    # Step 7: Run tests
+    - name: Run tests
+      working-directory: build
+      run: ctest --output-on-failure -VV
+
+    # Step 8: Tag the nightly build
+    - name: Create nightly tag
+      run: |
+        DATE=$(date +'%Y%m%d')
+        git tag -a nightly-$DATE -m "Nightly build for $DATE"
+        git push origin --tags
+
+    # Step 9: Upload build artifacts (optional)
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: nightly-build
+        path: build/
