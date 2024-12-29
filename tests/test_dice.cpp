@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include "Core/Core.h"
-#include "App.h"
+#include "Source/App.h"
 #include <sstream>
 
 // Helper function to simulate input

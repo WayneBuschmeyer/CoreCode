@@ -17,6 +17,7 @@ target_include_directories(Core PUBLIC Core/Source)
 # Add the main application
 add_executable(App
     App/Source/App.cpp
+    App/Source/App.h
 )
 
 # Ensure App includes the Core directory
@@ -39,8 +40,8 @@ add_executable(tests
     tests/test_dice.cpp
 )
 
-# Ensure tests include the Core directory
-target_include_directories(tests PRIVATE Core/Source)
+# Ensure tests include the Core and App directories
+target_include_directories(tests PRIVATE Core/Source App/Source)
 target_link_libraries(tests PRIVATE Core gtest_main)
 
 # Add tests to CTest
